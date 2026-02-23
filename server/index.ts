@@ -1,25 +1,32 @@
-import { createApp } from "./app.ts";
-import { log } from "./vite";
+import "dotenv/config";
+import { createApp } from "./app";
+import { serveStatic } from "./static";
 
 (async () => {
-  const { httpServer } = await createApp();
+  const { app, httpServer } = await createApp();
 
-  // ALWAY serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (process.env.NODE_ENV === "production") {
+    serveStatic(app);
+  } else {
+    const { setupVite } = await import("./vite");
+    await setupVite(httpServer, app);
+  }
+
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 3000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
+  const port = parseInt(process.env.PORT || "3000", 10);
+  const host = process.platform === "win32" ? "127.0.0.1" : "0.0.0.0";
+  const listenOptions =
+    process.platform === "win32"
+      ? { port, host }
+      : { port, host, reusePort: true };
 
-  // Only listen if we're not running as a Vercel serverless function
-  if (process.env.VERCEL !== "1") {
-    httpServer.listen(
-      {
-        port,
-        host: "0.0.0.0",
-      },
-      () => {
-        log(`serving on port ${port}`);
-      },
-    );
-  }
+  httpServer.listen(listenOptions, () => {
+    console.log(`serving on http://${host}:${port}`);
+  });
 })();
