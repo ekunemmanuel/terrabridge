@@ -59,6 +59,24 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
   });
+
+  console.log("building server app for vercel...");
+  await esbuild({
+    entryPoints: ["server/app.ts"],
+    platform: "node",
+    bundle: true,
+    format: "esm",
+    outfile: "dist/app.js",
+    define: {
+      "process.env.NODE_ENV": '"production"',
+    },
+    minify: false,
+    external: externals,
+    logLevel: "info",
+    banner: {
+      js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
+    },
+  });
 }
 
 buildAll().catch((err) => {
