@@ -60,6 +60,11 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  log(`Starting server in ${process.env.NODE_ENV} mode`);
+  log(`Working directory: ${process.cwd()}`);
+  log(`Vercel environment: ${process.env.VERCEL === "1" ? "Yes" : "No"}`);
+  log(`Database URL set: ${process.env.DATABASE_URL ? "Yes" : "No"}`);
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
