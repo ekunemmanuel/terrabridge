@@ -10,12 +10,10 @@ export async function registerRoutes(
 ): Promise<Server> {
   app.post(api.contact.create.path, async (req, res) => {
     try {
-      console.log("Incoming contact message:", req.body);
       const input = api.contact.create.input.parse(req.body);
       const message = await storage.createContactMessage(input);
       res.status(201).json(message);
     } catch (err) {
-      console.error("Error creating contact message:", err);
       if (err instanceof z.ZodError) {
         return res.status(400).json({
           message: err.errors[0].message,
